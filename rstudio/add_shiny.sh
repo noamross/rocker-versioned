@@ -21,7 +21,12 @@ if [ "$ADD" == "shiny" ]; then
     chown shiny.shiny /var/log/shiny-server && \
     mkdir -p /etc/services.d/shiny-server && \
     cd /etc/services.d/shiny-server && \
-    echo '#!/bin/bash' > run && echo 'exec shiny-server > /var/log/shiny-server.log' >> run && \
+    echo '#!/usr/bin/with-contenv bash' > run && \
+    echo '## load /etc/environment vars first:' >> run && \
+    echo 'for line in $( cat /etc/environment ) ; do export $line ; echo $line >> linelog.txt; done' >> run && \
+    echo 'SHINY=${SHINY:=true}' >> run && \
+    echo 'echo $SHINY >> linelog.txt' >> run && \
+    echo 'if [ "$SHINY" == "true" ]; then exec shiny-server > /var/log/shiny-server.log; fi' >> run && \
     chmod +x run && \
     adduser rstudio shiny && \
     cd /
